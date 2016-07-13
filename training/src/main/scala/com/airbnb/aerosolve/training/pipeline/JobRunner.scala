@@ -3,6 +3,7 @@ package com.airbnb.aerosolve.training.pipeline
 import java.io.File
 
 import com.typesafe.config.{ConfigFactory, ConfigParseOptions, ConfigResolveOptions}
+import com.airbnb.aerosolve.core.Example
 import org.apache.spark.{Logging, SparkConf, SparkContext}
 
 import scala.collection.JavaConversions._
@@ -48,6 +49,8 @@ object JobRunner extends Logging {
         job match {
           case "GenericMakeExamples" => GenericPipeline
             .makeTrainingRun(sc, config)
+          case "GenericMakeTesting" => GenericPipeline
+            .makeTestingRun(sc, config)
           case "GenericDebugExamples" => GenericPipeline
             .debugExampleRun(sc, config)
           case "GenericDebugTransforms" => GenericPipeline
@@ -58,6 +61,8 @@ object JobRunner extends Logging {
             .trainingRun(sc, config)
           case "GenericEvalModel" => GenericPipeline
             .evalRun(sc, config, "eval_model")
+          case "GenericEvalTest" => GenericPipeline
+            .evalRun(sc, config, "eval_test", Option((example : Example) => false))
           case "GenericCalibrateModel" => GenericPipeline
             .calibrateRun(sc, config)
           case "GenericEvalModelCalibrated" => GenericPipeline

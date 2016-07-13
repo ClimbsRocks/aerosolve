@@ -48,6 +48,20 @@ object GenericPipeline {
       .saveAsTextFile(output, classOf[GzipCodec])
   }
 
+  def makeTestingRun(sc: SparkContext, config: Config) = {
+    val cfg = config.getConfig("make_testing")
+    val query = cfg.getString("hive_query")
+    val output = cfg.getString("output")
+    val numShards = cfg.getInt("num_shards")
+    val isMulticlass = Try(cfg.getBoolean("is_multiclass")).getOrElse(false)
+    val testing = makeTraining(sc, query, isMulticlass)
+
+    testing
+      .coalesce(numShards, true)
+      .map(Util.encode)
+      .saveAsTextFile(output, classOf[GzipCodec])
+  }
+
   def debugExampleRun(sc: SparkContext, config: Config) = {
     val cfg = config.getConfig("debug_example")
     val query = cfg.getString("hive_query")
@@ -188,7 +202,7 @@ object GenericPipeline {
     // get calibration training data
     val data = getExamples(sc, input)
         .sample(false, plattsConfig.getDouble("subsample"))
-    
+
     val isTrainingFunc = getIsTrainingFunc(config, isTrainingOpt)
 
     val scoresAndLabel = PipelineUtil.scoreExamples(sc, transformer, model, data, isTrainingFunc, LABEL)
